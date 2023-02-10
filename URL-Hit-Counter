@@ -1,0 +1,68 @@
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("api/v1/visitor-count-app")
+public class UrlHitController {
+  
+  @Autowired
+  private UrlHitService urlHitService;
+  
+  @GetMapping("count")
+  public UrlHitDTO getHitCount() {
+    urlHitService.incrementHitCount();
+    return new UrlHitDTO(urlHitService.getHitCount());
+  }
+  
+  @GetMapping("{username}/count")
+  public UrlHitDTO getHitCountByUsername(@PathVariable String username) {
+    urlHitService.incrementHitCountForUser(username);
+    return new UrlHitDTO(username, urlHitService.getHitCountForUser(username));
+  }
+}
+
+class UrlHitDTO {
+  private String username;
+  private int hitCount;
+  
+  public UrlHitDTO(int hitCount) {
+    this.hitCount = hitCount;
+  }
+  
+  public UrlHitDTO(String username, int hitCount) {
+    this.username = username;
+    this.hitCount = hitCount;
+  }
+  
+  public String getUsername() {
+    return username;
+  }
+  
+  public int getHitCount() {
+    return hitCount;
+  }
+}
+
+@Service
+public class UrlHitService {
+  
+  private Map<String, Integer> hitCountMap = new HashMap<>();
+  
+  public void incrementHitCount() {
+    incrementHitCountForUser("visitors");
+  }
+  
+  public void incrementHitCountForUser(String username) {
+    hitCountMap.put(username, hitCountMap.getOrDefault(username, 0) + 1);
+  }
+  
+  public int getHitCount() {
+    return hitCountMap.getOrDefault("visitors", 0);
+  }
+  
+  public int getHitCountForUser(String username) {
+    return hitCountMap.getOrDefault(username, 0);
+  }
+}
